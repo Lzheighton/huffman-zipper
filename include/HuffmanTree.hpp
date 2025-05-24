@@ -6,10 +6,12 @@
 #include <vector>
 #include <map>
 #include <unordered_map>
+#include <cstdint>
 #include <fstream>
 #include <stdexcept>
 
 #include <iostream>
+#include "utils.hpp"
 #include "HuffmanNode.hpp"
 
 //定义最小堆，比较节点权重
@@ -18,6 +20,15 @@ struct compareNodes {
     bool operator()(const std::shared_ptr<HuffmanNode<T>>& a, const std::shared_ptr<HuffmanNode<T>>& b) const {
         return a->weight > b->weight;
     }
+};
+
+//元数据模型
+struct HuffmanHeader {
+    char magicNum[2] = {'Y', 'G'};
+    uint16_t tableSize;             //码表大小
+    uint64_t originalSize;          //原始文件大小，用于校验
+    uint64_t compressedSize;        //压缩后的文件大小
+    uint8_t paddingBits;            //最后一个字节的多余位
 };
 
 //基于优先队列实现的Huffman树
@@ -173,7 +184,7 @@ public:
         generateHuffmanCode(ptr->right);
     }
 
-    //根据完整码表生成完整的压缩缓冲区
+    //根据码表生成压缩缓冲区
     void CompressFile() {
         for (char c : this->rawData) {
             std::string HuffmanCode = this->HuffmanCodes[c];
@@ -186,6 +197,42 @@ public:
         if (bitPosition > 0) {
             compressedBuffer.push_back(currentByte);
         }
+    }
+
+    //将元数据和buffer写入文件
+    void writeCompressedFile(const std::string& filePath) {
+        //二进制读取+覆盖写入
+        std::ofstream ofs(filePath, std::ios::binary | std::ios::trunc);
+        if (!ofs.is_open()) throw std::runtime_error("Could not open file");
+
+        try {
+            auto HuffmanMap = hashMapToMap(this->HuffmanCodes);
+
+            HuffmanHeader header = {};
+            header.tableSize = HuffmanMap.size();
+            header.originalSize = this->rawData.size();
+            header.compressedSize = this->compressedBuffer.size();
+            header.paddingBits = (8 - this->bitPosition) % 8;
+
+            ofs.write(reinterpret_cast<const char*>(&header), sizeof(header));
+
+            for (const auto & it : HuffmanMap) {
+                //依次写入字符，编码长度，具体编码字符串
+                ofs.write(&it.first, 1);
+
+                uint8_t codeLength = it.second.length();
+                ofs.write(reinterpret_cast<const char*>(&codeLength), 1);
+
+                //类型转换为CStr再写入
+                ofs.write(reinterpret_cast<const char*>(it.second.c_str()), codeLength);
+            }
+
+            ofs.write(reinterpret_cast<const char*>(compressedBuffer.data()), compressedBuffer.size());
+        }catch (std::exception & e) {
+            std::cout << "输出文件失败：" << e.what() << std::endl;
+            ofs.close();
+        }
+        ofs.close();
     }
 };
 

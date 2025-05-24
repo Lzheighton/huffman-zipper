@@ -34,6 +34,8 @@ TEST(HuffmanTreeTest, PrivateAccess) {
     for (const auto& byte : tree.compressedBuffer) {
         std::cout << (int)byte << std::endl;
     }
+
+    tree.writeCompressedFile("D:/ClionProjects/Huffman-zipper/target.txt");
 }
 
 GTEST_API_ int main(int argc, char **argv) {
