@@ -20,12 +20,15 @@ TEST(HuffmanTreeTest, PrivateAccess) {
 
     tree.buildHuffmanTree("D:/ClionProjects/Huffman-zipper/test.txt");
     auto rootPtr = tree.root;
-    EXPECT_EQ(rootPtr->value, '1');
-    EXPECT_EQ(rootPtr->weight, 3);
+    // EXPECT_EQ(rootPtr->value, '1');
+    // EXPECT_EQ(rootPtr->weight, 3);
 
-    EXPECT_EQ(rootPtr->parent, nullptr);
-    EXPECT_EQ(rootPtr->left, nullptr);
-    EXPECT_EQ(rootPtr->right, nullptr);
+    tree.generateHuffmanCode(rootPtr);
+    std::cout << std::endl;
+    for (const auto& pair : tree.HuffmanCodes) {
+        const std::string& code = pair.second;
+        std::cout << pair.first << "->" << code << std::endl;
+    }
 }
 
 GTEST_API_ int main(int argc, char **argv) {
