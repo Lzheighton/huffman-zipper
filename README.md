@@ -11,10 +11,10 @@
 
 # 压缩过程
 
-`buildHuffmanTree()`：建立Huffman树
-`generateHuffmanCode()`：生成Huffman码表，哈希表
-`CompressFile()`：按照码表对rawData进行压缩，生成编码至buffer
-`writeCompressedFile()`：将元数据和buffer写入文件，完成压缩
+- `buildHuffmanTree()`：建立Huffman树
+- `generateHuffmanCode()`：生成Huffman码表，哈希表
+- `CompressFile()`：按照码表对rawData进行压缩，生成编码至buffer
+- `writeCompressedFile()`：将元数据和buffer写入文件，完成压缩
 
 # 解压过程
 
