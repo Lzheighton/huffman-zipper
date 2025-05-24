@@ -29,6 +29,11 @@ TEST(HuffmanTreeTest, PrivateAccess) {
         const std::string& code = pair.second;
         std::cout << pair.first << "->" << code << std::endl;
     }
+
+    tree.CompressFile();
+    for (const auto& byte : tree.compressedBuffer) {
+        std::cout << (int)byte << std::endl;
+    }
 }
 
 GTEST_API_ int main(int argc, char **argv) {

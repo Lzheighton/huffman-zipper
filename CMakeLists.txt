@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 add_executable(Huffman_zipper src/main.cpp
         include/HuffmanTree.hpp
         include/HuffmanNode.hpp
-        include/HuffmanCompressor.hpp)
+)
 
 INCLUDE_DIRECTORIES(include)
 

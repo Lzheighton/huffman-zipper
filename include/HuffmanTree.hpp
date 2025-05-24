@@ -26,18 +26,39 @@ class HuffmanTree {
 private:
     //文件流读取的char字符，生命周期伴随整个Huffman树对象（调用栈）
     std::vector<char> rawData;
+
     //存放huffman结点，以vector为容器的最小优先队列（堆）
     //! priority_queue是容器适配器，容器和适配器的元素类型需相同（存放指针）
     std::priority_queue<std::shared_ptr<HuffmanNode<char>>, std::vector<std::shared_ptr<HuffmanNode<char>>>, compareNodes<char>> pq_min;
     //建成Huffman树后指向根节点
     std::shared_ptr<HuffmanNode<char>> root = nullptr;
+
     //转换后的Huffman编码对照表
     std::unordered_map<char, std::string> HuffmanCodes;
-    //实现完整压缩过程友类
-    friend class HuffmanCompressor;
+
+    //转换后的缓冲区
+    std::vector<std::byte> compressedBuffer;
+    //压缩辅助共享参数
+    std::byte currentByte {0};
+    int bitPosition = 0;
 
     //*测试友类，提供private数据访问权限（Gtest命名约定）
     friend class HuffmanTreeTest_PrivateAccess_Test;
+
+    //压缩辅助函数
+    void addBit(bool bit) {
+        if (bit) {
+            currentByte |= static_cast<std::byte>(1 << (7 - bitPosition));
+        }
+        bitPosition++;
+
+        //byte已满，拷贝至缓冲区
+        if (bitPosition == 8) {
+            compressedBuffer.push_back(currentByte);
+            currentByte = std::byte{0};
+            bitPosition = 0;
+        }
+    }
 public:
     HuffmanTree() = default;
     ~HuffmanTree() = default;
@@ -150,6 +171,21 @@ public:
         }
         generateHuffmanCode(ptr->left);
         generateHuffmanCode(ptr->right);
+    }
+
+    //根据完整码表生成完整的压缩缓冲区
+    void CompressFile() {
+        for (char c : this->rawData) {
+            std::string HuffmanCode = this->HuffmanCodes[c];
+            for (const char code : HuffmanCode) {
+                addBit(code == '1');
+            }
+        }
+
+        //编码收尾，处理可能的不完整字节，写入缓冲区
+        if (bitPosition > 0) {
+            compressedBuffer.push_back(currentByte);
+        }
     }
 };
 
