@@ -6,12 +6,12 @@
 #include <vector>
 #include <map>
 #include <unordered_map>
-#include <cstdint>
 #include <fstream>
 #include <stdexcept>
 
 #include <iostream>
 #include "utils.hpp"
+#include "models.hpp"
 #include "HuffmanNode.hpp"
 
 //定义最小堆，比较节点权重
@@ -22,18 +22,9 @@ struct compareNodes {
     }
 };
 
-//元数据模型
-struct HuffmanHeader {
-    char magicNum[2] = {'Y', 'G'};
-    uint16_t tableSize;             //码表大小
-    uint64_t originalSize;          //原始文件大小，用于校验
-    uint64_t compressedSize;        //压缩后的文件大小
-    uint8_t paddingBits;            //最后一个字节的多余位
-};
-
 //基于优先队列实现的Huffman树
 template<typename T>
-class HuffmanTree {
+class HuffmanEncoder {
 private:
     //文件流读取的char字符，生命周期伴随整个Huffman树对象（调用栈）
     std::vector<char> rawData;
@@ -71,8 +62,8 @@ private:
         }
     }
 public:
-    HuffmanTree() = default;
-    ~HuffmanTree() = default;
+    HuffmanEncoder() = default;
+    ~HuffmanEncoder() = default;
 
     //从文件流读入原始文件
     void readFile(const std::string& filePath, std::streamsize chunk_size = 4096) {

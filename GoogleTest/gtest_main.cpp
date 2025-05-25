@@ -1,14 +1,15 @@
+#include "HuffmanDecoder.hpp"
 #include "gtest/gtest.h"
 #include "gtest/internal/gtest-port.h"
-#include "HuffmanTree.hpp"
+#include "HuffmanEncoder.hpp"
 
 //参数：测试套件，测试命名
 TEST(HuffmanTree, InitializeObject) {
-    HuffmanTree<int> tree;
+    HuffmanEncoder<int> tree;
 }
 
 TEST(HuffmanTreeTest, PrivateAccess) {
-    HuffmanTree<int> tree;
+    HuffmanEncoder<int> encoder;
     //tree.readFile("D:/ClionProjects/Huffman-zipper/test.txt");
     //tree.analyseWeight();
 
@@ -18,24 +19,37 @@ TEST(HuffmanTreeTest, PrivateAccess) {
     //EXPECT_EQ(ptr->value, '1');
     //EXPECT_EQ(ptr->weight, 3);
 
-    tree.buildHuffmanTree("D:/ClionProjects/Huffman-zipper/test.txt");
-    auto rootPtr = tree.root;
+    encoder.buildHuffmanTree("D:/ClionProjects/Huffman-zipper/test.txt");
+    auto rootPtr = encoder.root;
     // EXPECT_EQ(rootPtr->value, '1');
     // EXPECT_EQ(rootPtr->weight, 3);
 
-    tree.generateHuffmanCode(rootPtr);
+    encoder.generateHuffmanCode(rootPtr);
     std::cout << std::endl;
-    for (const auto& pair : tree.HuffmanCodes) {
+    for (const auto& pair : encoder.HuffmanCodes) {
         const std::string& code = pair.second;
         std::cout << pair.first << "->" << code << std::endl;
     }
 
-    tree.CompressFile();
-    for (const auto& byte : tree.compressedBuffer) {
+    encoder.CompressFile();
+    for (const auto& byte : encoder.compressedBuffer) {
         std::cout << (int)byte << std::endl;
     }
 
-    tree.writeCompressedFile("D:/ClionProjects/Huffman-zipper/target.txt");
+    encoder.writeCompressedFile("D:/ClionProjects/Huffman-zipper/target.txt");
+}
+
+TEST(HuffmanDecoderTest, PrivateAccess) {
+    HuffmanDecoder decoder;
+    decoder.readFile("D:/ClionProjects/Huffman-zipper/target.txt");
+    for (const auto& pair : decoder.HuffmanCodes) {
+        std::cout << pair.first << "->" << pair.second << std::endl;
+    }
+    decoder.DeCompressFile();
+    std::cout << decoder.decompressedResult << std::endl;
+    std::cout << decoder.decompressedResult[0] << std::endl;
+
+    decoder.writeDeCompressedFile("D:/ClionProjects/Huffman-zipper/test.txt");
 }
 
 GTEST_API_ int main(int argc, char **argv) {

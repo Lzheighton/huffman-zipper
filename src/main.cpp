@@ -1,7 +1,7 @@
-#include "HuffmanTree.hpp"
+#include "HuffmanEncoder.hpp"
 
 int main() {
-    HuffmanTree<int> tree;
+    HuffmanEncoder<int> tree;
     tree.readFile("D:/ClionProjects/Huffman-zipper/test.txt");
 
     return 0;
