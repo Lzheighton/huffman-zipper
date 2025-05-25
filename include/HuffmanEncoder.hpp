@@ -90,6 +90,7 @@ public:
 
         //* 调试输出
         std::cout << this->rawData.size() << " bytes read" << std::endl;
+
         for (char & it : rawData) {
             std::cout << it << " ";
         }
