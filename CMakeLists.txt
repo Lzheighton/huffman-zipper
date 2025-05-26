@@ -20,10 +20,18 @@ qt_add_executable(Huffman_zipper src/main.cpp
         include/utils.hpp
         include/models.hpp
         include/HuffmanDecoder.hpp
-        ui/mainwindow.cpp
-        ui/mainwindow.h
+        include/mainwindow.h
+        src/mainwindow.cpp
         ui/mainwindow.ui
         ui/ui_mainwindow.h
+)
+
+add_compile_options(
+        /utf-8                   # 指定 UTF-8 编码
+        /Zc:__cplusplus          # 返回实际C++标准值，而不是MSVC默认C++98，Qt需要标准检查
+        /permissive-             # 启动严格C++标准检查，禁用非标准扩展
+        /W3                      # 警告级别3，警告未初始化变量，函数返回值被忽略，可能的数据丢失，未使用的变量
+        /wd4819                  # 禁用编码警告
 )
 
 target_link_libraries(Huffman_zipper PRIVATE
