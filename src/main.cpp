@@ -1,8 +1,11 @@
-#include "HuffmanEncoder.hpp"
+#include <QApplication>
 
-int main() {
-    HuffmanEncoder<int> tree;
-    tree.readFile("D:/ClionProjects/Huffman-zipper/test.txt");
+#include "mainwindow.h"
 
-    return 0;
+int main(int argc, char *argv[]) {
+    QApplication app(argc, argv);
+    MainWindow w;
+    w.show();
+
+    return QApplication::exec();
 }
