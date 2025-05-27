@@ -45,7 +45,7 @@ TEST(HuffmanDecoderTest, PrivateAccess) {
     for (const auto& pair : decoder.HuffmanCodes) {
         std::cout << pair.first << "->" << pair.second << std::endl;
     }
-    decoder.DeCompressFile();
+    decoder.DecompressFile();
     std::cout << decoder.decompressedResult << std::endl;
     std::cout << decoder.decompressedResult[0] << std::endl;
 

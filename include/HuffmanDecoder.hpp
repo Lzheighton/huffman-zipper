@@ -1,10 +1,10 @@
+#pragma once
 #ifndef HUFFMANDECODER_HPP
 #define HUFFMANDECODER_HPP
 #include <unordered_map>
 #include <string>
 #include <vector>
 #include <fstream>
-#include <iostream>
 
 #include "models.hpp"
 
@@ -62,9 +62,6 @@ private:
 
     //*测试友类
     friend class HuffmanDecoderTest_PrivateAccess_Test;
-public:
-    HuffmanDecoder() = default;
-    ~HuffmanDecoder() = default;
 
     //从文件流读入原始文件
     void readFile(const std::string& filePath) {
@@ -86,14 +83,14 @@ public:
             readHuffmanCodes(ifs);
             readCompressedData(ifs);
         }catch (std::exception& e) {
-            std::cout << "文件读取失败：" << e.what() << std::endl;
+            throw std::runtime_error("Error while reading file");
         }
 
         ifs.close();
     }
 
     //解码
-    void DeCompressFile() {
+    void DecompressFile() {
         this->decompressedResult.clear();
         //std::string.reserve() 预留容量空间
         //! 不可使用resize()，会使用空字符填充空间，导致输出带空白字符
@@ -130,6 +127,16 @@ public:
         }
         ofs << decompressedResult;
         ofs.close();
+    }
+
+public:
+    HuffmanDecoder() = default;
+    ~HuffmanDecoder() = default;
+
+    void decode(const std::string& inputFilePath, const std::string& outputPath) {
+        this->readFile(inputFilePath);
+        this->DecompressFile();
+        this->writeDeCompressedFile(outputPath);
     }
 };
 

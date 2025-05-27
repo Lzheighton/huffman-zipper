@@ -58,9 +58,6 @@ private:
             bitPosition = 0;
         }
     }
-public:
-    HuffmanEncoder() = default;
-    ~HuffmanEncoder() = default;
 
     //从文件流读入原始文件
     void readFile(const std::string& filePath, std::streamsize chunk_size = 4096) {
@@ -223,6 +220,10 @@ public:
         }
         ofs.close();
     }
+
+public:
+    HuffmanEncoder() = default;
+    ~HuffmanEncoder() = default;
 
     //整合接口函数
     void encode(const std::string& inputFilePath, const std::string& outputPath){

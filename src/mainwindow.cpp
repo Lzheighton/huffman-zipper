@@ -27,11 +27,13 @@ void MainWindow::connectSignals() {
     connect(ui->pushButton_browse, &QPushButton::clicked, this, &MainWindow::getInputFile);
     connect(ui->pushButton_selectOutput, &QPushButton::clicked, this, &MainWindow::getOutputPath);
     connect(ui->pushButton_compress, &QPushButton::clicked, this, &MainWindow::compressFile);
+    connect(ui->pushButton_decompress, &QPushButton::clicked, this, &MainWindow::decompressFile);
+    connect(ui->pushButton_clear, &QPushButton::clicked, this, &MainWindow::clearPaths);
 }
 
 void MainWindow::getInputFile() {
     //文件对话框，默认路径为空
-    QString fileName = QFileDialog::getOpenFileName(
+    QString inputFilePath = QFileDialog::getOpenFileName(
         this,
         "选择要压缩的文件",
         QDir::homePath(),
@@ -39,23 +41,27 @@ void MainWindow::getInputFile() {
     );
 
     //获取文件大小
-    if(!fileName.isEmpty()) {
-        ui->lineEdit_filePath->setText(fileName);
+    if(!inputFilePath.isEmpty()) {
+        ui->lineEdit_filePath->setText(inputFilePath);
 
-        //显示文件大小
-        QFileInfo fileInfo(fileName);
+        //获取文件大小
+        QFileInfo fileInfo(inputFilePath);
         qint64 fileSize = fileInfo.size();
         QString sizeText = QString("%1 bytes").arg(fileSize);
         if (fileSize > 1024) {
-            sizeText += QString(" (%.2f KB)").arg(fileSize / 1024.0);
+            // 使用 QString::asprintf 格式化浮点数
+            sizeText += QString::asprintf(" (%.2f KB)", fileSize / 1024.0);
         }
         ui->label_fileSizeValue->setText(sizeText);
 
-        ui->textEdit_log->append(QString("已选择文件: %1").arg(fileName));
+        ui->textEdit_log->append(QString("已选择文件: %1").arg(inputFilePath));
 
-        this->inputFilePath = fileName;
+        this->inputFilePath = inputFilePath;
 
-        if (!this->outputPath.isEmpty()) ui->pushButton_compress->setEnabled(true);
+        if (!this->outputPath.isEmpty()) {
+            ui->pushButton_compress->setEnabled(true);
+            ui->pushButton_decompress->setEnabled(true);
+        }
     }
 }
 
@@ -80,7 +86,10 @@ void MainWindow::getOutputPath() {
 
     this->outputPath = outputDirPath;
 
-    if(!this->inputFilePath.isEmpty()) ui->pushButton_compress->setEnabled(true);
+    if(!this->inputFilePath.isEmpty()) {
+        ui->pushButton_compress->setEnabled(true);
+        ui->pushButton_decompress->setEnabled(true);
+    }
 }
 
 void MainWindow::compressFile() {
@@ -89,7 +98,7 @@ void MainWindow::compressFile() {
         return;
     }
     if (this->outputPath.isEmpty()) {
-        QMessageBox::critical(this, "Error", "请选择输出路径");
+        QMessageBox::critical(this, "Error", "请选择文件输出路径");
         return;
     }
     HuffmanEncoder encoder;
@@ -100,4 +109,33 @@ void MainWindow::compressFile() {
         QMessageBox::critical(this, "Error", e.what());
     }
     ui->textEdit_log->append(QString("文件压缩完成，输出至：%1").arg(this->outputPath));
+}
+
+void MainWindow::decompressFile() {
+    if (this->inputFilePath.isEmpty()) {
+        QMessageBox::critical(this, "Error", "请选择要解压文件路径");
+        return;
+    }
+    if (this->outputPath.isEmpty()) {
+        QMessageBox::critical(this, "Error", "请选择文件输出路径");
+        return;
+    }
+    HuffmanDecoder decoder;
+    try {
+        decoder.decode(this->inputFilePath.toStdString(),
+            this->outputPath.toStdString());
+    }catch (std::exception &e) {
+        QMessageBox::critical(this, "Error", e.what());
+    }
+    ui->textEdit_log->append(QString("文件解压完成，输出至：%1").arg(this->outputPath));
+}
+
+void MainWindow::clearPaths() {
+    this->inputFilePath.clear();
+    this->outputPath.clear();
+
+    ui->lineEdit_filePath->clear();
+    ui->lineEdit_outputPath->clear();
+
+    ui->textEdit_log->append("路径已清空");
 }

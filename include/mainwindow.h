@@ -20,6 +20,8 @@ private slots:
     void getInputFile();
     void getOutputPath();
     void compressFile();
+    void decompressFile();
+    void clearPaths();
 
 private:
     Ui::MainWindow *ui;
