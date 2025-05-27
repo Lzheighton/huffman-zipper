@@ -5,11 +5,11 @@
 
 //参数：测试套件，测试命名
 TEST(HuffmanTree, InitializeObject) {
-    HuffmanEncoder<int> tree;
+    HuffmanEncoder tree;
 }
 
 TEST(HuffmanTreeTest, PrivateAccess) {
-    HuffmanEncoder<int> encoder;
+    HuffmanEncoder encoder;
     //tree.readFile("D:/ClionProjects/Huffman-zipper/test.txt");
     //tree.analyseWeight();
 

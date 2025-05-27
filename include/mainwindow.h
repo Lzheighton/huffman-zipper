@@ -2,6 +2,7 @@
 #define ZIPPERWIDGET_HPP
 
 #include "../ui/ui_mainwindow.h"
+#include "HuffmanEncoder.hpp"
 
 QT_BEGIN_NAMESPACE
 //namespace 中的窗口UI类，独立于派生得到的同名类
@@ -18,11 +19,16 @@ public:
 private slots:
     void getInputFile();
     void getOutputPath();
+    void compressFile();
 
 private:
     Ui::MainWindow *ui;
     //连接UI信号与槽函数
     void connectSignals();
+
+    //类内通用文件路径
+    QString inputFilePath;
+    QString outputPath;
 };
 
 

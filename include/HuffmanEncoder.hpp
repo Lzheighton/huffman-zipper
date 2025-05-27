@@ -9,21 +9,18 @@
 #include <fstream>
 #include <stdexcept>
 
-#include <iostream>
 #include "utils.hpp"
 #include "models.hpp"
 #include "HuffmanNode.hpp"
 
 //定义最小堆，比较节点权重
-template<typename T>
 struct compareNodes {
-    bool operator()(const std::shared_ptr<HuffmanNode<T>>& a, const std::shared_ptr<HuffmanNode<T>>& b) const {
+    bool operator()(const std::shared_ptr<HuffmanNode<char>>& a, const std::shared_ptr<HuffmanNode<char>>& b) const {
         return a->weight > b->weight;
     }
 };
 
 //基于优先队列实现的Huffman树
-template<typename T>
 class HuffmanEncoder {
 private:
     //文件流读取的char字符，生命周期伴随整个Huffman树对象（调用栈）
@@ -31,7 +28,7 @@ private:
 
     //存放huffman结点，以vector为容器的最小优先队列（堆）
     //! priority_queue是容器适配器，容器和适配器的元素类型需相同（存放指针）
-    std::priority_queue<std::shared_ptr<HuffmanNode<char>>, std::vector<std::shared_ptr<HuffmanNode<char>>>, compareNodes<char>> pq_min;
+    std::priority_queue<std::shared_ptr<HuffmanNode<char>>, std::vector<std::shared_ptr<HuffmanNode<char>>>, compareNodes> pq_min;
     //建成Huffman树后指向根节点
     std::shared_ptr<HuffmanNode<char>> root = nullptr;
 
@@ -89,11 +86,11 @@ public:
         }
 
         //* 调试输出
-        std::cout << this->rawData.size() << " bytes read" << std::endl;
+        // std::cout << this->rawData.size() << " bytes read" << std::endl;
 
-        for (char & it : rawData) {
-            std::cout << it << " ";
-        }
+        // for (char & it : rawData) {
+        //     std::cout << it << " ";
+        // }
 
         ifs.close();
     }
@@ -221,10 +218,18 @@ public:
 
             ofs.write(reinterpret_cast<const char*>(compressedBuffer.data()), compressedBuffer.size());
         }catch (std::exception & e) {
-            std::cout << "输出文件失败：" << e.what() << std::endl;
             ofs.close();
+            throw std::runtime_error(e.what());
         }
         ofs.close();
+    }
+
+    //整合接口函数
+    void encode(const std::string& inputFilePath, const std::string& outputPath){
+        this->buildHuffmanTree(inputFilePath);
+        this->generateHuffmanCode(this->root);
+        this->CompressFile();
+        this->writeCompressedFile(outputPath);
     }
 };
 
