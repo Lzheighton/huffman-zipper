@@ -24,6 +24,7 @@ qt_add_executable(Huffman_zipper src/main.cpp
         src/mainwindow.cpp
         ui/mainwindow.ui
         ui/ui_mainwindow.h
+        include/WorkerThread.hpp
 )
 
 add_compile_options(

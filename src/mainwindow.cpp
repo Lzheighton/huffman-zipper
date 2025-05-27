@@ -7,6 +7,7 @@
 #include <QDir>
 #include <QMessageBox>
 
+#include "WorkerThread.hpp"
 #include "HuffmanEncoder.hpp"
 #include "HuffmanDecoder.hpp"
 
@@ -101,14 +102,19 @@ void MainWindow::compressFile() {
         QMessageBox::critical(this, "Error", "请选择文件输出路径");
         return;
     }
-    HuffmanEncoder encoder;
-    try {
-        encoder.encode(this->inputFilePath.toStdString(),
-            this->outputPath.toStdString());
-    }catch (std::exception &e) {
-        QMessageBox::critical(this, "Error", e.what());
-    }
-    ui->textEdit_log->append(QString("文件压缩完成，输出至：%1").arg(this->outputPath));
+    auto* compressThread = new CompressThread(this->inputFilePath.toStdString(),
+        this->outputPath.toStdString(), this);
+
+    //先进行信号与槽连接再启动线程
+    //lambda表达式
+    connect(compressThread, &CompressThread::compressedFinished, this, [this]() {
+        ui->textEdit_log->append(QString("文件压缩完成，输出至：%1").arg(this->outputPath));
+    });
+
+    connect(compressThread, &CompressThread::errorOccurred, this, [this](const QString& error) {
+        QMessageBox::critical(this, "Error", error);
+    });
+    compressThread->start();
 }
 
 void MainWindow::decompressFile() {
@@ -120,14 +126,17 @@ void MainWindow::decompressFile() {
         QMessageBox::critical(this, "Error", "请选择文件输出路径");
         return;
     }
-    HuffmanDecoder decoder;
-    try {
-        decoder.decode(this->inputFilePath.toStdString(),
-            this->outputPath.toStdString());
-    }catch (std::exception &e) {
-        QMessageBox::critical(this, "Error", e.what());
-    }
-    ui->textEdit_log->append(QString("文件解压完成，输出至：%1").arg(this->outputPath));
+    auto* decompressThread = new DecompressThread(this->inputFilePath.toStdString(),
+        this->outputPath.toStdString(), this);
+
+    connect(decompressThread, &DecompressThread::decompressedFinished, this, [this]() {
+        ui->textEdit_log->append(QString("文件解压完成，输出至：%1").arg(this->outputPath));
+    });
+
+    connect(decompressThread, &DecompressThread::errorOccurred, this, [this](const QString& error) {
+        QMessageBox::critical(this, "Error", error);
+    });
+    decompressThread->start();
 }
 
 void MainWindow::clearPaths() {
