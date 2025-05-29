@@ -6,6 +6,8 @@
 #include <QPushButton>
 #include <QDir>
 #include <QMessageBox>
+#include <QTimer>
+#include <QDirIterator>
 
 #include "WorkerThread.hpp"
 #include "HuffmanEncoder.hpp"
@@ -15,8 +17,21 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
     ui -> setupUi(this);
     connectSignals();
 
-    //初始化界面，禁用进度条，写入启动日志
-    ui->progressBar -> setVisible(false);
+    //初始化界面，写入启动日志
+    ui->label_compressloading->hide();
+    ui->label_decompressloading->hide();
+
+    // 在UI初始化时设置
+    ui->label_compressloading->setAlignment(Qt::AlignCenter);
+    ui->label_decompressloading->setScaledContents(true);
+
+    ui->label_decompressloading->setAlignment(Qt::AlignCenter);
+    ui->label_decompressloading->setScaledContents(true);
+
+    this->loadingTimer = new QTimer(this);
+
+    this->setLoadingAnimation();
+
     ui->textEdit_log->append("程序启动完毕，请选择被解压文件");
 }
 
@@ -102,6 +117,8 @@ void MainWindow::compressFile() {
         QMessageBox::critical(this, "Error", "请选择文件输出路径");
         return;
     }
+    this->isCompressing = true;
+    ui->label_compressloading->show();
     auto* compressThread = new CompressThread(this->inputFilePath.toStdString(),
         this->outputPath.toStdString(), this);
 
@@ -109,11 +126,14 @@ void MainWindow::compressFile() {
     //lambda表达式
     connect(compressThread, &CompressThread::compressedFinished, this, [this]() {
         ui->textEdit_log->append(QString("文件压缩完成，输出至：%1").arg(this->outputPath));
+        ui->label_compressloading->hide();
+        ui->label_decompressloading->setPixmap(QPixmap());
     });
 
     connect(compressThread, &CompressThread::errorOccurred, this, [this](const QString& error) {
         QMessageBox::critical(this, "Error", error);
-    });
+        ui->label_compressloading->hide();
+        ui->label_decompressloading->setPixmap(QPixmap());    });
     compressThread->start();
 }
 
@@ -126,15 +146,21 @@ void MainWindow::decompressFile() {
         QMessageBox::critical(this, "Error", "请选择文件输出路径");
         return;
     }
+    this->isDecompressing = true;
+    ui->label_decompressloading->show();
     auto* decompressThread = new DecompressThread(this->inputFilePath.toStdString(),
         this->outputPath.toStdString(), this);
 
     connect(decompressThread, &DecompressThread::decompressedFinished, this, [this]() {
         ui->textEdit_log->append(QString("文件解压完成，输出至：%1").arg(this->outputPath));
+        ui->label_decompressloading->hide();
+        ui->label_decompressloading->setPixmap(QPixmap());
     });
 
     connect(decompressThread, &DecompressThread::errorOccurred, this, [this](const QString& error) {
         QMessageBox::critical(this, "Error", error);
+        ui->label_decompressloading->hide();
+        ui->label_decompressloading->setPixmap(QPixmap());
     });
     decompressThread->start();
 }
@@ -147,4 +173,46 @@ void MainWindow::clearPaths() {
     ui->lineEdit_outputPath->clear();
 
     ui->textEdit_log->append("路径已清空");
+}
+
+void MainWindow::setLoadingAnimation() {
+    //加载动画（PNG序列）
+
+    // //计时器停止机制，防止内存泄漏
+    // if (this->loadingTimer) {
+    //     this->loadingTimer->stop();
+    //     this->loadingTimer->deleteLater();
+    // }
+
+    // this->loadingTimer = new QTimer(this);
+
+    QStringList m_strListImg;
+    QDirIterator it(":/resources/loading", QStringList() << "*.png", QDir::Files);
+
+    while (it.hasNext()) {
+        m_strListImg.append(it.next());
+    }
+
+    connect(this->loadingTimer, &QTimer::timeout, this, [=]() {
+        static int cnt = 0;
+
+        if (cnt >= m_strListImg.size())
+            cnt = 0;
+
+        QPixmap originalPixmap = QPixmap(m_strListImg.at(cnt));
+        //缩放pixmap
+        QPixmap scaledPixmap = originalPixmap.scaled(
+             40, 40,
+             Qt::KeepAspectRatio,
+             Qt::SmoothTransformation
+             );
+
+        if(this->isCompressing)
+            ui->label_compressloading->setPixmap(scaledPixmap);
+        if (this->isDecompressing)
+            ui->label_decompressloading->setPixmap(scaledPixmap);
+        cnt++;
+    });
+
+    this->loadingTimer->start(20);
 }

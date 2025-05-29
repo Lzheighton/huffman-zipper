@@ -17,6 +17,8 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
+    void setLoadingAnimation();
+
     //工作线程类，通过友类共享线程访问权
     friend class CompressThread;
     friend class DecompressThread;
@@ -40,6 +42,11 @@ private:
     //类内共享文件路径
     QString inputFilePath;
     QString outputPath;
+
+    //实现加载动画
+    QTimer* loadingTimer;
+    bool isCompressing = false;
+    bool isDecompressing = false;
 };
 
 

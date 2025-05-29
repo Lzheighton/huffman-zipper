@@ -41,5 +41,16 @@ target_link_libraries(Huffman_zipper PRIVATE
         Qt6::Widgets
 )
 
+# 使用相对路径收集文件
+file(GLOB LOADING_IMAGES
+        RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+        "resources/loading/*.png")
+
+# 添加资源
+qt_add_resources(Huffman_zipper "animations"
+        PREFIX "/"
+        FILES ${LOADING_IMAGES}
+)
+
 #GoogleTest单元测试
 add_subdirectory(GoogleTest)
