@@ -4,6 +4,7 @@
 #include "../ui/ui_mainwindow.h"
 #include "HuffmanEncoder.hpp"
 #include <QMutex>
+#include <QtSvgWidgets/QSvgWidget>
 
 QT_BEGIN_NAMESPACE
 //namespace 中的窗口UI类，独立于派生得到的同名类
@@ -16,8 +17,6 @@ Q_OBJECT
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
-
-    void setLoadingAnimation();
 
     //工作线程类，通过友类共享线程访问权
     friend class CompressThread;
@@ -43,10 +42,8 @@ private:
     QString inputFilePath;
     QString outputPath;
 
-    //实现加载动画
-    QTimer* loadingTimer;
-    bool isCompressing = false;
-    bool isDecompressing = false;
+    // //svg矢量图实现加载动画
+    // QSvgWidget *loadingSvgWidget;
 };
 
 

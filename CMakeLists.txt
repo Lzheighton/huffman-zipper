@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_PREFIX_PATH  "C:/Qt/6.9.0/msvc2022_64")
 
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg SvgWidgets)
 
 set(CMAKE_AUTOMOC ON) #自动处理Qt的元对象编译器
 set(CMAKE_AUTORCC ON) #自动处理资源文件
@@ -39,17 +39,27 @@ target_link_libraries(Huffman_zipper PRIVATE
         Qt6::Core
         Qt6::Gui
         Qt6::Widgets
+        Qt6::Svg
+        Qt6::SvgWidgets
 )
 
-# 使用相对路径收集文件
-file(GLOB LOADING_IMAGES
-        RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
-        "resources/loading/*.png")
+## 使用相对路径收集文件
+#file(GLOB LOADING_IMAGES
+#        RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+#        "resources/loading/*.png")
+#
+## 添加资源
+#qt_add_resources(Huffman_zipper "animations"
+#        PREFIX "/"
+#        FILES ${LOADING_IMAGES}
+#)
 
-# 添加资源
-qt_add_resources(Huffman_zipper "animations"
-        PREFIX "/"
-        FILES ${LOADING_IMAGES}
+file(GLOB LOADING_SVG
+        RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+        "resources/DoubleRing.svg")
+
+qt_add_resources(Huffman_zipper "svg_resources"
+        FILES ${LOADING_SVG}
 )
 
 #GoogleTest单元测试
