@@ -1,10 +1,10 @@
 # 功能
 
-:heavy_check_mark:基于Huffman树生成不等长编码压缩文件
+✔️​基于Huffman树生成不等长编码压缩文件
 
-:heavy_check_mark:通过元数据内码表解压缩文件
+✔️​通过元数据内码表解压缩文件
 
-:heavy_check_mark:对文件进行SHA256校验（openssl库）
+✔️对文件进行SHA256校验（openssl库）
 
 ## 元数据模型
 
@@ -41,7 +41,7 @@
 
 动态分配对象：通过`new`运算符创建（返回一个指向该对象的指针），`delete`销毁（显式销毁）
 
-## 智能指针
+## 🤖智能指针
 
 `std::<memeory>`标准库提供了智能指针类型来管理动态对象，智能指针的行为类似常规指针，但其负责自动释放所指向的对象
 
@@ -77,7 +77,7 @@
 
 本项目中，Huffman结点的父结点指针使用了弱引用，以防止循环引用产生的内存泄漏（循环引用下引用计数不会降为0，对象不会自动销毁）
 
-# 文件流`std::<fstream>`
+# 📄文件流`std::<fstream>`
 
 所有的流（控制台IO流iostream，文件IO流fstream）都以stream类作为基础，流缓冲就是内存空间
 
@@ -126,9 +126,9 @@ stream类重载了`<<`和`>>`作为插入器和析取器
 
 两个成员函数：`read(unsigned char *buf,int num)` 　`write(const unsigned char *buf,int num)`
 
-:one:读取num个字符至buf指向的缓存，若在未读取到num个字符就到达了文件末尾，可使用`gcount()`返回实际读取字符数
+1. 读取num个字符至buf指向的缓存，若在未读取到num个字符就到达了文件末尾，可使用`gcount()`返回实际读取字符数
 
-:two:从buf指向的缓存取num个字符写入文件中，const unsigned char需要强制类型转换`reinterpret_cast`
+2. 从buf指向的缓存取num个字符写入文件中，const unsigned char需要强制类型转换`reinterpret_cast`
 
 辅助函数：`ifs/ofs.eof()`检查是否到达文件尾，到达返回非零值，没到达返回0（返回整型）
 
