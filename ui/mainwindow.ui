@@ -97,7 +97,7 @@
             <bool>true</bool>
            </property>
            <property name="placeholderText">
-            <string>请选择被压缩文件路径...</string>
+            <string>请选择输入文件路径...</string>
            </property>
           </widget>
          </item>
@@ -217,7 +217,7 @@
             </font>
            </property>
            <property name="placeholderText">
-            <string>选择解压后文件的保存位置...</string>
+            <string>请选择输出文件路径...</string>
            </property>
           </widget>
          </item>
@@ -394,6 +394,45 @@
            </property>
            <property name="text">
             <string>清空</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_sha256check">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="minimumSize">
+            <size>
+             <width>90</width>
+             <height>40</height>
+            </size>
+           </property>
+           <property name="styleSheet">
+            <string notr="true">QPushButton {
+                                                    background-color: #002FA7;
+                                                    color: white;
+                                                    border: none;
+                                                    border-radius: 5px;
+											  font-weight: bold;
+                                                    padding: 8px;
+                                                    }
+
+                                                    QPushButton:hover {
+                                                    background-color: #0041C7;
+                                                    }
+
+                                                    QPushButton:pressed {
+                                                    background-color: #001F87;
+                                                   }		
+
+										QPushButton:disabled {
+                                                    background-color: #cccccc;
+                                                    color: #666666;
+                                                    }</string>
+           </property>
+           <property name="text">
+            <string>SHA256校验</string>
            </property>
           </widget>
          </item>

@@ -21,6 +21,7 @@ public:
     //工作线程类，通过友类共享线程访问权
     friend class CompressThread;
     friend class DecompressThread;
+    friend class CheckSHA256Thread;
 
 private slots:
     void getInputFile();
@@ -28,6 +29,7 @@ private slots:
     void compressFile();
     void decompressFile();
     void clearPaths();
+    void checkSHA256();
 
 private:
     Ui::MainWindow *ui;
@@ -37,13 +39,11 @@ private:
     //工作线程，压缩和解压线程
     QMutex CompressMutex;
     QMutex DecompressMutex;
+    QMutex CheckSHA256Mutex;
 
     //类内共享文件路径
     QString inputFilePath;
     QString outputPath;
-
-    // //svg矢量图实现加载动画
-    // QSvgWidget *loadingSvgWidget;
 };
 
 

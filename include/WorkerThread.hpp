@@ -32,7 +32,7 @@ public:
 
     //两种信号，出现错误或是压缩操作完成
     signals:
-    void errorOccurred(const QString& error);
+    void errorOccurred(const QString error);
     void compressedFinished();
 
 private:
@@ -67,8 +67,49 @@ public:
     }
 
     signals:
-    void errorOccurred(const QString& error);
+    void errorOccurred(const QString error);
     void decompressedFinished(bool success);
+
+private:
+    //通过构造函数向线程传入的文件输入输出路径
+    std::string inputFilePath;
+    std::string outputPath;
+
+    //指向运行UI实例的指针
+    MainWindow *mainWindowInstance;
+};
+
+class CheckSHA256Thread : public QThread {
+    Q_OBJECT
+public:
+    explicit CheckSHA256Thread(const std::string& inputFilePath,
+        const std::string& outputPath,
+        MainWindow* parent = nullptr) {
+        this->mainWindowInstance = parent;
+        this->inputFilePath = inputFilePath;
+        this->outputPath = outputPath;
+    };
+
+    void run() override {
+        QMutexLocker locker(&mainWindowInstance->CheckSHA256Mutex);
+        try {
+            std::string fileA = sha256(this->inputFilePath);
+            std::string fileB = sha256(this->outputPath);
+            //线程内检查，成功则返回唯一SHA256值，校验失败返回两个SHA256值
+            if (fileA == fileB) {
+                emit checkSuccess(fileA);
+            }else {
+                emit checkFailed(fileA, fileB);
+            }
+        }catch (std::exception& e) {
+            emit errorOccurred(QString(e.what()));
+        }
+    }
+
+    signals:
+    void errorOccurred(QString error);
+    void checkFailed(std::string sha256A, std::string sha256B);
+    void checkSuccess(std::string sha256);
 
 private:
     //通过构造函数向线程传入的文件输入输出路径

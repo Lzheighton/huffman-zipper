@@ -37,6 +37,7 @@ void MainWindow::connectSignals() {
     connect(ui->pushButton_compress, &QPushButton::clicked, this, &MainWindow::compressFile);
     connect(ui->pushButton_decompress, &QPushButton::clicked, this, &MainWindow::decompressFile);
     connect(ui->pushButton_clear, &QPushButton::clicked, this, &MainWindow::clearPaths);
+    connect(ui->pushButton_sha256check, &QPushButton::clicked, this, &MainWindow::checkSHA256);
 }
 
 void MainWindow::getInputFile() {
@@ -69,6 +70,7 @@ void MainWindow::getInputFile() {
         if (!this->outputPath.isEmpty()) {
             ui->pushButton_compress->setEnabled(true);
             ui->pushButton_decompress->setEnabled(true);
+            ui->pushButton_sha256check->setEnabled(true);
         }
     }
 }
@@ -97,18 +99,11 @@ void MainWindow::getOutputPath() {
     if(!this->inputFilePath.isEmpty()) {
         ui->pushButton_compress->setEnabled(true);
         ui->pushButton_decompress->setEnabled(true);
+        ui->pushButton_sha256check->setEnabled(true);
     }
 }
 
 void MainWindow::compressFile() {
-    if (this->inputFilePath.isEmpty()) {
-        QMessageBox::critical(this, "Error", "请选择被压缩文件");
-        return;
-    }
-    if (this->outputPath.isEmpty()) {
-        QMessageBox::critical(this, "Error", "请选择文件输出路径");
-        return;
-    }
     ui->widget_compressLoading->show();
     auto* compressThread = new CompressThread(this->inputFilePath.toStdString(),
         this->outputPath.toStdString(), this);
@@ -128,14 +123,6 @@ void MainWindow::compressFile() {
 }
 
 void MainWindow::decompressFile() {
-    if (this->inputFilePath.isEmpty()) {
-        QMessageBox::critical(this, "Error", "请选择要解压文件路径");
-        return;
-    }
-    if (this->outputPath.isEmpty()) {
-        QMessageBox::critical(this, "Error", "请选择文件输出路径");
-        return;
-    }
     ui->widget_decompressLoading->show();
     auto* decompressThread = new DecompressThread(this->inputFilePath.toStdString(),
         this->outputPath.toStdString(), this);
@@ -160,4 +147,38 @@ void MainWindow::clearPaths() {
     ui->lineEdit_outputPath->clear();
 
     ui->textEdit_log->append("路径已清空");
+}
+
+void MainWindow::checkSHA256() {
+    ui->widget_compressLoading->show();
+    ui->widget_decompressLoading->show();
+
+    auto* checkSHA256Thread = new CheckSHA256Thread(this->inputFilePath.toStdString(),
+        this->outputPath.toStdString(), this);
+
+    connect(checkSHA256Thread, &CheckSHA256Thread::checkSuccess, this, [this](const std::string& fileA) {
+        ui->textEdit_log->append("SHA256校验完成，相同的值：");
+        ui->textEdit_log->append(QString::fromStdString(fileA));
+
+        ui->widget_compressLoading->hide();
+        ui->widget_decompressLoading->hide();
+    });
+
+    connect(checkSHA256Thread, &CheckSHA256Thread::checkFailed, this, [this](const std::string& fileA, const std::string& fileB) {
+        ui->textEdit_log->append("SHA256校验失败，不同的值：");
+        ui->textEdit_log->append(QString("文件一SHA256值：%1").arg(fileA));
+        ui->textEdit_log->append(QString("文件二SHA256值：%1").arg(fileB));
+
+        ui->widget_compressLoading->hide();
+        ui->widget_decompressLoading->hide();
+    });
+
+    connect(checkSHA256Thread, &CheckSHA256Thread::errorOccurred, this, [this](const QString& error) {
+        QMessageBox::critical(this, "Error", error);
+
+        ui->widget_compressLoading->hide();
+        ui->widget_decompressLoading->hide();
+    });
+
+    checkSHA256Thread->start();
 }

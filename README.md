@@ -1,8 +1,14 @@
-# Huffman压缩后的文件结构
+# 功能
+
+:heavy_check_mark:基于Huffman树生成不等长编码压缩文件
+
+:heavy_check_mark:通过元数据内码表解压缩文件
+
+:heavy_check_mark:对文件进行SHA256校验（openssl库）
 
 ## 元数据模型
 
-- HuffmanCodes Huffman码表，二进制编码与原始符号对应关系
+- `HuffmanCodes` Huffman码表，二进制编码与原始符号对应关系
 - 数据填充信息：最后一个字节的压缩数据可能不完整，包含一些无意义的填充位置
 - 原始文件大小/符号数量：md5值，用于解压完成后的完整性校验/解压缩预分配内存
 - MagicNumber：文件开头的特殊字节，用于识别文件类型

@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_PREFIX_PATH  "C:/Qt/6.9.0/msvc2022_64")
 
 find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets Svg SvgWidgets)
+find_package(OpenSSL REQUIRED)
 
 set(CMAKE_AUTOMOC ON) #自动处理Qt的元对象编译器
 set(CMAKE_AUTORCC ON) #自动处理资源文件
@@ -42,6 +43,10 @@ target_link_libraries(Huffman_zipper PRIVATE
         Qt6::Svg
         Qt6::SvgWidgets
 )
+
+target_link_directories(Huffman_zipper PRIVATE ${OPENSSL_CRYPTO_LIBRARY})
+target_include_directories(Huffman_zipper PRIVATE ${OPENSSL_INCLUDE_DIR})
+target_link_libraries(Huffman_zipper PRIVATE OpenSSL::SSL OpenSSL::Crypto)
 
 ## 使用相对路径收集文件
 #file(GLOB LOADING_IMAGES
