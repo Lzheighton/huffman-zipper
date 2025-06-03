@@ -67,5 +67,9 @@ qt_add_resources(Huffman_zipper "svg_resources"
         FILES ${LOADING_SVG}
 )
 
+target_sources(Huffman_zipper PRIVATE resources/resources.rc)
+set_property(SOURCE resources/resources.rc PROPERTY CMAKE_RC_INPUT_FORMAT RESOURCE)
+set_target_properties(Huffman_zipper PROPERTIES WIN32_EXECUTABLE TRUE)
+
 #GoogleTest单元测试
 add_subdirectory(GoogleTest)
