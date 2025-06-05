@@ -7,6 +7,7 @@
 #include <map>
 #include <unordered_map>
 #include <fstream>
+#include <filesystem>
 #include <stdexcept>
 
 #include "utils.hpp"
@@ -40,6 +41,10 @@ private:
     //压缩辅助共享参数
     std::byte currentByte {0};
     int bitPosition = 0;
+
+    //记忆文件名，文件名与扩展名
+    std::string fileName;
+    std::string fileType;
 
     //*测试友类，提供private数据访问权限（Gtest命名约定）
     friend class HuffmanTreeTest_PrivateAccess_Test;
@@ -82,6 +87,10 @@ private:
             throw std::runtime_error("File could not be read");
         }
 
+        //C++ 17 filesystem，获取文件名
+        std::filesystem::path path(filePath);
+        this->fileType = path.extension().string();
+        this->fileName = path.stem().string();
         //* 调试输出
         // std::cout << this->rawData.size() << " bytes read" << std::endl;
 
@@ -187,8 +196,8 @@ private:
 
     //将元数据和buffer写入文件
     void writeCompressedFile(const std::string& filePath) {
-        //二进制读取+覆盖写入
-        std::ofstream ofs(filePath, std::ios::binary | std::ios::trunc);
+        //二进制读取，新建文件，后缀名.huf
+        std::ofstream ofs(filePath + "\\" + this->fileName + ".huf", std::ios::binary);
         if (!ofs.is_open()) throw std::runtime_error("Could not open file");
 
         try {
@@ -212,6 +221,11 @@ private:
                 //类型转换为CStr再写入
                 ofs.write(reinterpret_cast<const char*>(it.second.c_str()), codeLength);
             }
+
+            char extBuffer[32];
+            strcpy_s(extBuffer, fileType.c_str());
+
+            ofs.write(extBuffer, 32);
 
             ofs.write(reinterpret_cast<const char*>(compressedBuffer.data()), compressedBuffer.size());
         }catch (std::exception & e) {

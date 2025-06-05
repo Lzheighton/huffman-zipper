@@ -217,12 +217,12 @@
             </font>
            </property>
            <property name="placeholderText">
-            <string>请选择输出文件路径...</string>
+            <string>请选择输出路径或校验文件路径...</string>
            </property>
           </widget>
          </item>
          <item>
-          <widget class="QPushButton" name="pushButton_selectOutput">
+          <widget class="QPushButton" name="pushButton_selectOutputFile">
            <property name="minimumSize">
             <size>
              <width>80</width>
@@ -236,7 +236,26 @@
             </size>
            </property>
            <property name="text">
-            <string>浏览...</string>
+            <string>浏览文件...</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="pushButton_selectOutputPath">
+           <property name="minimumSize">
+            <size>
+             <width>80</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="maximumSize">
+            <size>
+             <width>80</width>
+             <height>30</height>
+            </size>
+           </property>
+           <property name="text">
+            <string>浏览路径...</string>
            </property>
           </widget>
          </item>

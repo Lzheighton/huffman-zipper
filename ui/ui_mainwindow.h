@@ -53,7 +53,8 @@ public:
     QHBoxLayout *horizontalLayout_outputPath;
     QLabel *label_outputPath;
     QLineEdit *lineEdit_outputPath;
-    QPushButton *pushButton_selectOutput;
+    QPushButton *pushButton_selectOutputFile;
+    QPushButton *pushButton_selectOutputPath;
     QSvgWidget *widget_decompressLoading;
     QHBoxLayout *horizontalLayout_buttons;
     QSpacerItem *horizontalSpacer_left;
@@ -185,12 +186,19 @@ public:
 
         horizontalLayout_outputPath->addWidget(lineEdit_outputPath);
 
-        pushButton_selectOutput = new QPushButton(groupBox_fileInfo);
-        pushButton_selectOutput->setObjectName("pushButton_selectOutput");
-        pushButton_selectOutput->setMinimumSize(QSize(80, 30));
-        pushButton_selectOutput->setMaximumSize(QSize(80, 30));
+        pushButton_selectOutputFile = new QPushButton(groupBox_fileInfo);
+        pushButton_selectOutputFile->setObjectName("pushButton_selectOutputFile");
+        pushButton_selectOutputFile->setMinimumSize(QSize(80, 30));
+        pushButton_selectOutputFile->setMaximumSize(QSize(80, 30));
 
-        horizontalLayout_outputPath->addWidget(pushButton_selectOutput);
+        horizontalLayout_outputPath->addWidget(pushButton_selectOutputFile);
+
+        pushButton_selectOutputPath = new QPushButton(groupBox_fileInfo);
+        pushButton_selectOutputPath->setObjectName("pushButton_selectOutputPath");
+        pushButton_selectOutputPath->setMinimumSize(QSize(80, 30));
+        pushButton_selectOutputPath->setMaximumSize(QSize(80, 30));
+
+        horizontalLayout_outputPath->addWidget(pushButton_selectOutputPath);
 
         widget_decompressLoading = new QSvgWidget(groupBox_fileInfo);
         widget_decompressLoading->setObjectName("widget_decompressLoading");
@@ -346,8 +354,9 @@ public:
         label_fileSize->setText(QCoreApplication::translate("MainWindow", "\346\226\207\344\273\266\345\244\247\345\260\217:", nullptr));
         label_fileSizeValue->setText(QCoreApplication::translate("MainWindow", "--", nullptr));
         label_outputPath->setText(QCoreApplication::translate("MainWindow", "\350\276\223\345\207\272\350\267\257\345\276\204:", nullptr));
-        lineEdit_outputPath->setPlaceholderText(QCoreApplication::translate("MainWindow", "\350\257\267\351\200\211\346\213\251\350\276\223\345\207\272\346\226\207\344\273\266\350\267\257\345\276\204...", nullptr));
-        pushButton_selectOutput->setText(QCoreApplication::translate("MainWindow", "\346\265\217\350\247\210...", nullptr));
+        lineEdit_outputPath->setPlaceholderText(QCoreApplication::translate("MainWindow", "\350\257\267\351\200\211\346\213\251\350\276\223\345\207\272\350\267\257\345\276\204\346\210\226\346\240\241\351\252\214\346\226\207\344\273\266\350\267\257\345\276\204...", nullptr));
+        pushButton_selectOutputFile->setText(QCoreApplication::translate("MainWindow", "\346\265\217\350\247\210\346\226\207\344\273\266...", nullptr));
+        pushButton_selectOutputPath->setText(QCoreApplication::translate("MainWindow", "\346\265\217\350\247\210\350\267\257\345\276\204...", nullptr));
         pushButton_decompress->setStyleSheet(QCoreApplication::translate("MainWindow", "QPushButton {\n"
 "                                                    background-color: #4CAF50;\n"
 "                                                    color: white;\n"

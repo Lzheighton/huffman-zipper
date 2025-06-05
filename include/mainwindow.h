@@ -26,6 +26,7 @@ public:
 private slots:
     void getInputFile();
     void getOutputPath();
+    void getCheckFile();
     void compressFile();
     void decompressFile();
     void clearPaths();
@@ -33,10 +34,10 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-    //连接UI信号与槽函数
+    //连接UI信号与槽
     void connectSignals();
 
-    //工作线程，压缩和解压线程
+    //工作线程，压缩，解压，校验线程
     QMutex CompressMutex;
     QMutex DecompressMutex;
     QMutex CheckSHA256Mutex;

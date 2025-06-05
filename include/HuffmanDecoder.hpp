@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
+#include <filesystem>
 
 #include "models.hpp"
 
@@ -15,6 +16,9 @@ private:
     HuffmanHeader header;
     //解码后的码表
     std::unordered_map<std::string, char> HuffmanCodes;
+    //文件扩展名，压缩文件名
+    std::string fileExt;
+    std::string fileName;
     //从文件流读取的压缩后数据以及完成解码后的源数据
     std::vector<std::byte> compressedData;
     std::string decompressedResult;
@@ -50,6 +54,13 @@ private:
         }
     }
 
+    //读取文件扩展名
+    void readFileExt(std::ifstream& ifs) {
+        char extBuffer[32];
+        ifs.read(extBuffer, 32);
+        this->fileExt = std::string(extBuffer);
+    }
+
     //读取压缩后数据
     void readCompressedData(std::ifstream& ifs) {
         //! 根据元数据设定大小，减少内存开销
@@ -81,10 +92,14 @@ private:
             }
 
             readHuffmanCodes(ifs);
+            readFileExt(ifs);
             readCompressedData(ifs);
         }catch (std::exception& e) {
             throw std::runtime_error("Error while reading file");
         }
+
+        std::filesystem::path path(filePath);
+        this->fileName = path.stem().string();
 
         ifs.close();
     }
@@ -121,7 +136,8 @@ private:
 
     //写入文件
     void writeDeCompressedFile(const std::string& filePath) {
-        std::ofstream ofs(filePath, std::ios::out | std::ios::trunc);
+        std::ofstream ofs(filePath + "\\" + this->fileName + this->fileExt, std::ios::out);
+
         if (!ofs.is_open()) {
             throw std::runtime_error("Could not open file");
         }
