@@ -15,17 +15,17 @@ private:
     //元数据模型
     HuffmanHeader header;
     //解码后的码表
-    std::unordered_map<std::string, char> HuffmanCodes;
-    //文件扩展名，压缩文件名
+    std::unordered_map<std::string, unsigned char> HuffmanCodes;
+    //从元数据中转换得到的扩展名与当前压缩文件名
     std::string fileExt;
     std::string fileName;
     //从文件流读取的压缩后数据以及完成解码后的源数据
     std::vector<std::byte> compressedData;
-    std::string decompressedResult;
+    std::vector<unsigned char> decompressedResult;
 
     //读取元数据
     void readHeader(std::ifstream& ifs) {
-        ifs.read(reinterpret_cast<char*>(&header), sizeof(header));
+        ifs.read(reinterpret_cast<char*>(&this->header), sizeof(this->header));
         if (ifs.bad()) {
             throw std::runtime_error("Error while reading header");
         }
@@ -37,8 +37,8 @@ private:
 
         for (uint16_t i = 0; i < header.tableSize; ++i) {
             //顺序读取字符，编码长度，编码后的字符串
-            char character;
-            ifs.read(&character, 1);
+            unsigned char character;
+            ifs.read(reinterpret_cast<char*>(&character), 1);
 
             uint8_t codeLength;
             ifs.read(reinterpret_cast<char*>(&codeLength), 1);
@@ -52,13 +52,6 @@ private:
                 throw std::runtime_error("Error while reading huffman code table");
             }
         }
-    }
-
-    //读取文件扩展名
-    void readFileExt(std::ifstream& ifs) {
-        char extBuffer[32];
-        ifs.read(extBuffer, 32);
-        this->fileExt = std::string(extBuffer);
     }
 
     //读取压缩后数据
@@ -78,7 +71,7 @@ private:
     void readFile(const std::string& filePath) {
         this->compressedData.clear();
         //二进制读取，不做任何解码
-        std::ifstream ifs(filePath, std::ios::binary);
+        std::ifstream ifs(filePath, std::ios::in | std::ios::binary);
 
         if (!ifs.is_open()) {
             throw std::runtime_error("Could not open file");
@@ -91,11 +84,12 @@ private:
                 throw std::runtime_error("Invalid type of file");
             }
 
+            this->fileExt = std::string(header.originalExt);
+
             readHuffmanCodes(ifs);
-            readFileExt(ifs);
             readCompressedData(ifs);
         }catch (std::exception& e) {
-            throw std::runtime_error("Error while reading file");
+            throw std::runtime_error(e.what());
         }
 
         std::filesystem::path path(filePath);
@@ -125,7 +119,7 @@ private:
                 //! 不定长编码，检查码表操作在for循环内
                 auto it = HuffmanCodes.find(deCompressBuffer);
                 if (it != HuffmanCodes.end()) {
-                    this->decompressedResult += it->second;
+                    this->decompressedResult.push_back(it->second);
                     deCompressBuffer.clear();
                 }
                 ++processedBits;
@@ -136,12 +130,15 @@ private:
 
     //写入文件
     void writeDeCompressedFile(const std::string& filePath) {
-        std::ofstream ofs(filePath + "\\" + this->fileName + this->fileExt, std::ios::out);
+        std::ofstream ofs(filePath + "\\" + this->fileName + this->fileExt, std::ios::out | std::ios::binary);
 
         if (!ofs.is_open()) {
             throw std::runtime_error("Could not open file");
         }
-        ofs << decompressedResult;
+
+        ofs.write(reinterpret_cast<const char*>(this->decompressedResult.data()),
+                this->decompressedResult.size());
+
         ofs.close();
     }
 

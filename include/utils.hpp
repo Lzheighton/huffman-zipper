@@ -10,8 +10,8 @@
 #include <sstream>
 
 //哈希表至一般键值对map转换函数
-inline std::map<char, std::string> hashMapToMap(std::unordered_map<char, std::string> &uoMap) {
-    std::map<char, std::string> neoMap;
+inline std::map<unsigned char, std::string> hashMapToMap(std::unordered_map<unsigned char, std::string> &uoMap) {
+    std::map<unsigned char, std::string> neoMap;
     for (const auto &pair: uoMap) {
         neoMap[pair.first] = pair.second;
     }

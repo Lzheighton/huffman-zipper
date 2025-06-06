@@ -16,7 +16,8 @@
 
 //定义最小堆，比较节点权重
 struct compareNodes {
-    bool operator()(const std::shared_ptr<HuffmanNode<char>>& a, const std::shared_ptr<HuffmanNode<char>>& b) const {
+    bool operator()(const std::shared_ptr<HuffmanNode<unsigned char>>& a,
+                    const std::shared_ptr<HuffmanNode<unsigned char>>& b) const {
         return a->weight > b->weight;
     }
 };
@@ -25,16 +26,19 @@ struct compareNodes {
 class HuffmanEncoder {
 private:
     //文件流读取的char字符，生命周期伴随整个Huffman树对象（调用栈）
-    std::vector<char> rawData;
+    std::vector<unsigned char> rawData;
 
     //存放huffman结点，以vector为容器的最小优先队列（堆）
     //! priority_queue是容器适配器，容器和适配器的元素类型需相同（存放指针）
-    std::priority_queue<std::shared_ptr<HuffmanNode<char>>, std::vector<std::shared_ptr<HuffmanNode<char>>>, compareNodes> pq_min;
+    std::priority_queue<std::shared_ptr<HuffmanNode<unsigned char>>,
+                        std::vector<std::shared_ptr<HuffmanNode<unsigned char>>>,
+                        compareNodes> pq_min;
+
     //建成Huffman树后指向根节点
-    std::shared_ptr<HuffmanNode<char>> root = nullptr;
+    std::shared_ptr<HuffmanNode<unsigned char>> root = nullptr;
 
     //转换后的Huffman编码对照表
-    std::unordered_map<char, std::string> HuffmanCodes;
+    std::unordered_map<unsigned char, std::string> HuffmanCodes;
 
     //转换后的缓冲区
     std::vector<std::byte> compressedBuffer;
@@ -67,17 +71,17 @@ private:
     //从文件流读入原始文件
     void readFile(const std::string& filePath, std::streamsize chunk_size = 4096) {
         this->rawData.clear();
-        std::ifstream ifs(filePath, std::ios::in);
+        std::ifstream ifs(filePath, std::ios::in | std::ios::binary);
 
         if (!ifs.is_open()) {
             throw std::runtime_error("Could not open file");
         }
 
         //按块读取
-        std::vector<char> chunk(chunk_size);
+        std::vector<unsigned char> chunk(chunk_size);
 
         //以char形式读取，传入rawData
-        while (ifs.read(chunk.data(), chunk_size) || ifs.gcount() > 0) {
+        while (ifs.read(reinterpret_cast<char*>(chunk.data()), chunk_size) || ifs.gcount() > 0) {
             for (std::streamsize i = 0; i < ifs.gcount(); ++i) {
                 this->rawData.push_back(chunk[i]);
             }
@@ -104,16 +108,18 @@ private:
     //分析rawData中字符权重，写入优先队列
     void analyseWeight() {
         //局部变量map，用于存储字符-权重键值对
-        std::map<char, int> weightMap;
+        std::map<unsigned char, int> weightMap;
         if (rawData.empty()) {
             throw std::runtime_error("rawData is empty");
         }
-        for (const char & it : this->rawData) {
-            ++weightMap[it];
+        for (auto& it : this->rawData) {
+            //从rawData中进行类型转换至unsigned char
+            auto byte_value = static_cast<unsigned char>(it);
+            ++weightMap[byte_value];
         }
         for (const auto & it : weightMap) {
             //std::make_shared创建智能指针对象
-            auto neoNode = std::make_shared<HuffmanNode<char>>(it.first, it.second);
+            auto neoNode = std::make_shared<HuffmanNode<unsigned char>>(it.first, it.second);
             this->pq_min.push(neoNode);
         }
     }
@@ -130,7 +136,7 @@ private:
             pq_min.pop();
 
             int neoWeight = nodeA->weight + nodeB->weight;
-            auto neoNode = std::make_shared<HuffmanNode<char>>(neoWeight);
+            auto neoNode = std::make_shared<HuffmanNode<unsigned char>>(neoWeight);
             neoNode->left = nodeA;
             neoNode->right = nodeB;
             //父结点指针使用弱引用，不会增加引用计数
@@ -146,7 +152,7 @@ private:
     }
 
     //通过Huffman树进行压缩，生成Huffman编码表（哈希表）
-    void generateHuffmanCode(std::shared_ptr<HuffmanNode<char>>& ptr) {
+    void generateHuffmanCode(std::shared_ptr<HuffmanNode<unsigned char>>& ptr) {
         if (!ptr) return;
         //叶子节点，生成编码
         if (!ptr->left && !ptr->right) {
@@ -181,8 +187,18 @@ private:
 
     //根据码表生成压缩缓冲区
     void CompressFile() {
-        for (char c : this->rawData) {
-            std::string HuffmanCode = this->HuffmanCodes[c];
+        this->compressedBuffer.clear();
+        this->currentByte = std::byte{0};
+        this->bitPosition = 0;
+
+        for (unsigned char c : this->rawData) {
+            //安全改进，.find()方法，在码表中未找到对应字符则抛出错误
+            auto itCode = this->HuffmanCodes.find(c);
+            if (itCode == this->HuffmanCodes.end()) {
+                throw std::runtime_error("Could not find Huffman code in the map");
+            }
+
+            const std::string& HuffmanCode = itCode->second;
             for (const char code : HuffmanCode) {
                 addBit(code == '1');
             }
@@ -196,36 +212,34 @@ private:
 
     //将元数据和buffer写入文件
     void writeCompressedFile(const std::string& filePath) {
-        //二进制读取，新建文件，后缀名.huf
-        std::ofstream ofs(filePath + "\\" + this->fileName + ".huf", std::ios::binary);
+        //二进制读取，新建文件，后缀名.huf，覆写文件
+        std::ofstream ofs(filePath + "\\" + this->fileName + ".huf", std::ios::binary | std::ios::trunc);
         if (!ofs.is_open()) throw std::runtime_error("Could not open file");
 
         try {
             auto HuffmanMap = hashMapToMap(this->HuffmanCodes);
 
+            //顺次写入文件元数据（码表大小，源文件大小，压缩后大小，剩余位，源文件扩展名）
+            //对应的Huffman码表，压缩后完整数据
             HuffmanHeader header = {};
             header.tableSize = HuffmanMap.size();
             header.originalSize = this->rawData.size();
             header.compressedSize = this->compressedBuffer.size();
             header.paddingBits = (8 - this->bitPosition) % 8;
+            strcpy_s(header.originalExt, fileType.c_str());
 
             ofs.write(reinterpret_cast<const char*>(&header), sizeof(header));
 
             for (const auto & it : HuffmanMap) {
                 //依次写入字符，编码长度，具体编码字符串
-                ofs.write(&it.first, 1);
+                ofs.write(reinterpret_cast<const char*>(&it.first), 1);
 
                 uint8_t codeLength = it.second.length();
                 ofs.write(reinterpret_cast<const char*>(&codeLength), 1);
 
                 //类型转换为CStr再写入
-                ofs.write(reinterpret_cast<const char*>(it.second.c_str()), codeLength);
+                ofs.write(it.second.c_str(), codeLength);
             }
-
-            char extBuffer[32];
-            strcpy_s(extBuffer, fileType.c_str());
-
-            ofs.write(extBuffer, 32);
 
             ofs.write(reinterpret_cast<const char*>(compressedBuffer.data()), compressedBuffer.size());
         }catch (std::exception & e) {
