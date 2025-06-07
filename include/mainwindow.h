@@ -22,6 +22,7 @@ public:
     friend class CompressThread;
     friend class DecompressThread;
     friend class CheckSHA256Thread;
+    friend class AnalysisThread;
 
 private slots:
     void getInputFile();
@@ -41,6 +42,9 @@ private:
     QMutex CompressMutex;
     QMutex DecompressMutex;
     QMutex CheckSHA256Mutex;
+
+    //文件元数据校验线程
+    QMutex AnalysisMutex;
 
     //类内共享文件路径
     QString inputFilePath;

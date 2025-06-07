@@ -224,6 +224,7 @@ private:
             HuffmanHeader header = {};
             header.tableSize = HuffmanMap.size();
             header.originalSize = this->rawData.size();
+            //数据缓冲区的大小，用于resize解压缓冲区数组和计算压缩率，不可改动
             header.compressedSize = this->compressedBuffer.size();
             header.paddingBits = (8 - this->bitPosition) % 8;
             strcpy_s(header.originalExt, fileType.c_str());

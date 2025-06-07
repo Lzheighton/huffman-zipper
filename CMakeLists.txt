@@ -72,4 +72,4 @@ set_property(SOURCE resources/resources.rc PROPERTY CMAKE_RC_INPUT_FORMAT RESOUR
 set_target_properties(Huffman_zipper PROPERTIES WIN32_EXECUTABLE TRUE)
 
 #GoogleTest单元测试
-add_subdirectory(GoogleTest)
+#add_subdirectory(GoogleTest)

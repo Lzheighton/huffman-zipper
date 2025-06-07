@@ -64,7 +64,7 @@ private:
         }
     }
 
-    //*测试友类
+    //* 测试友类
     friend class HuffmanDecoderTest_PrivateAccess_Test;
 
     //从文件流读入原始文件
@@ -145,6 +145,24 @@ private:
 public:
     HuffmanDecoder() = default;
     ~HuffmanDecoder() = default;
+
+    HuffmanHeader analysisHeader(const std::string& inputFilePath, uint64_t& HuffmanTableSize){
+        std::ifstream ifs(inputFilePath, std::ios::in | std::ios::binary);
+        if (!ifs.is_open()) {
+            throw std::runtime_error("Could not open file");
+        }
+        readHeader(ifs);
+
+        //计算Huffman码表大小
+        readHuffmanCodes(ifs);
+        HuffmanTableSize = 0;
+        for (const auto& it : this->HuffmanCodes) {
+            HuffmanTableSize += 2;
+            HuffmanTableSize += it.first.size();
+        }
+
+        return this->header;
+    }
 
     void decode(const std::string& inputFilePath, const std::string& outputPath) {
         this->readFile(inputFilePath);

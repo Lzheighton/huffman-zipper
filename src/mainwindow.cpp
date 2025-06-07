@@ -67,16 +67,38 @@ void MainWindow::getInputFile() {
 
         this->inputFilePath = inputFilePath;
 
-        if (!this->inputFilePath.isEmpty()) {
-            ui->textEdit_log->append(QString("已选择文件: %1").arg(inputFilePath));
-            //强制滚动到底部
-            ui->textEdit_log->verticalScrollBar()->setValue(ui->textEdit_log->verticalScrollBar()->maximum());
-        }
+        ui->textEdit_log->append(QString("已选择文件: %1").arg(inputFilePath));
+        //强制滚动到底部
+        ui->textEdit_log->verticalScrollBar()->setValue(ui->textEdit_log->verticalScrollBar()->maximum());
 
-        if (!this->outputPath.isEmpty()) {
-            ui->pushButton_compress->setEnabled(true);
-            ui->pushButton_decompress->setEnabled(true);
-            ui->pushButton_sha256check->setEnabled(true);
+        //当前打开为压缩文件，进行元数据校验
+        std::filesystem::path path(inputFilePath.toStdString());
+        std::string fileExt = path.extension().string();
+        if (fileExt == ".huf") {
+            auto* analysisThread = new AnalysisThread(this, this->inputFilePath.toStdString());
+
+            connect(analysisThread, &QThread::finished, analysisThread, &QObject::deleteLater);
+
+            connect(analysisThread, &AnalysisThread::analysisFinished, this, [this](uint64_t srcFileSize, uint64_t hufFileSize, uint64_t huffmanTableSize) {
+                ui->textEdit_log->append(QString("压缩文件解析完成，获取的元数据信息："));
+                ui->textEdit_log->append(QString("原始文件大小：%1 bytes").arg(srcFileSize));
+
+                //ui线程中计算完整的文件大小（添加元数据，码表大小）
+                ui->textEdit_log->append(QString("压缩后文件大小：%1 bytes").arg(hufFileSize + sizeof(HuffmanHeader) + huffmanTableSize));
+
+                //压缩率计算包括了Huffman码表，不包括元数据（64bytes定长）
+                if (srcFileSize > 0) {
+                    double compressionRatio = static_cast<double>(hufFileSize) / static_cast<double>(srcFileSize) * 100;
+                    ui->textEdit_log->append(QString("压缩率：%1%").arg(compressionRatio));
+                }
+                ui->textEdit_log->append(QString("请校验文件大小！检查压缩文件是否损坏"));
+                ui->textEdit_log->verticalScrollBar()->setValue(ui->textEdit_log->verticalScrollBar()->maximum());
+            });
+
+            connect(analysisThread, &AnalysisThread::errorOccurred, this, [this](const QString& error) {
+                QMessageBox::critical(this, "Error", error);
+            });
+            analysisThread->start();
         }
     }
 }
@@ -130,8 +152,8 @@ void MainWindow::getCheckFile() {
 
 void MainWindow::compressFile() {
     ui->widget_compressLoading->show();
-    auto* compressThread = new CompressThread(this->inputFilePath.toStdString(),
-        this->outputPath.toStdString(), this);
+    auto* compressThread = new CompressThread(this, this->inputFilePath.toStdString(),
+        this->outputPath.toStdString());
 
     //先进行信号与槽连接再启动线程
     //lambda表达式
@@ -150,8 +172,8 @@ void MainWindow::compressFile() {
 
 void MainWindow::decompressFile() {
     ui->widget_decompressLoading->show();
-    auto* decompressThread = new DecompressThread(this->inputFilePath.toStdString(),
-        this->outputPath.toStdString(), this);
+    auto* decompressThread = new DecompressThread(this, this->inputFilePath.toStdString(),
+        this->outputPath.toStdString());
 
     connect(decompressThread, &DecompressThread::decompressedFinished, this, [this]() {
         ui->textEdit_log->append(QString("文件解压完成，输出至：%1").arg(this->outputPath));
@@ -185,8 +207,8 @@ void MainWindow::checkSHA256() {
     ui->widget_compressLoading->show();
     ui->widget_decompressLoading->show();
 
-    auto* checkSHA256Thread = new CheckSHA256Thread(this->inputFilePath.toStdString(),
-        this->outputPath.toStdString(), this);
+    auto* checkSHA256Thread = new CheckSHA256Thread(this, this->inputFilePath.toStdString(),
+        this->outputPath.toStdString());
 
     connect(checkSHA256Thread, &CheckSHA256Thread::checkSuccess, this, [this](const std::string& fileA) {
         ui->textEdit_log->append("SHA256校验完成，相同的值：");
